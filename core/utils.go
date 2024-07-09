@@ -40,7 +40,7 @@ func (d Dice) RollWithAdvantage(advantage int) int {
 	roll := 0
 	advantageaAbs := int(math.Abs(float64(advantage)))
 	for i := 1; i < advantageaAbs; i++ {
-		assssss
+
 	}
 
 	return total
