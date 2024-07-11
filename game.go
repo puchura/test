@@ -48,6 +48,7 @@ func main() {
 		update()
 		render()
 	}
+	quit()
 
 }
 
