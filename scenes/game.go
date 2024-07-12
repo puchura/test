@@ -1,15 +1,13 @@
-package core
+package scenes
 
 import (
-	"wgame/scenes"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Game struct {
 	width, height int32
 	title         string
-	currentScene  scenes.Scene
+	currentScene  Scene
 }
 
 func NewGame(width, height int32, title string) *Game {
@@ -20,7 +18,7 @@ func NewGame(width, height int32, title string) *Game {
 	}
 }
 
-func (g *Game) ChangeScene(newScene scenes.Scene) {
+func (g *Game) ChangeScene(newScene Scene) {
 	if g.currentScene != nil {
 		g.currentScene.Unload()
 	}
@@ -35,7 +33,7 @@ func (g *Game) Run() {
 	rl.SetTargetFPS(60)
 	rl.SetExitKey(0)
 
-	menuScene := scenes.NewMenuScene(g)
+	menuScene := NewMenuScene(g)
 	g.ChangeScene(menuScene)
 
 	for !rl.WindowShouldClose() {

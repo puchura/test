@@ -6,7 +6,3 @@ type Scene interface {
 	Update()
 	Draw()
 }
-
-type SceneChanger interface {
-	ChangeScene(newScene Scene)
-}

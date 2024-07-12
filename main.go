@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"wgame/core"
+	"wgame/scenes"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -22,7 +23,7 @@ var (
 func main() {
 
 	//test()
-	game := core.NewGame(swidth, sheight, stitle)
+	game := scenes.NewGame(swidth, sheight, stitle)
 	game.Run()
 
 }

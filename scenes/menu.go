@@ -5,11 +5,11 @@ import (
 )
 
 type MenuScene struct {
-	sc SceneChanger
+	game *Game
 }
 
-func NewMenuScene(scenechanger SceneChanger) *MenuScene {
-	return &MenuScene{sc: scenechanger}
+func NewMenuScene(game *Game) *MenuScene {
+	return &MenuScene{game: game}
 }
 
 func (s *MenuScene) Load()   {}
@@ -17,7 +17,7 @@ func (s *MenuScene) Unload() {}
 
 func (s *MenuScene) Update() {
 	if rl.IsKeyPressed(rl.KeyEnter) {
-		s.sc.ChangeScene(NewGameplayScene(s.sc))
+		s.game.ChangeScene(NewGameplayScene(s.game))
 	}
 }
 
