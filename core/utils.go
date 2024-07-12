@@ -35,15 +35,22 @@ func (d Dice) Roll(reroll int) int {
 	return total
 }
 
-/*
-func (d Dice) RollWithAdvantage(advantage int) int {
-	total := 0
+func (d Dice) RollWithAdvantage(advantage int, reroll int) int {
 	roll := 0
-
-	return total
+	newroll := d.Roll(reroll)
+	advantageaAbs := int(math.Abs(float64(advantage)))
+	for i := 0; i < advantageaAbs; i++ {
+		roll = d.Roll(reroll)
+		if advantage > 0 {
+			newroll = int(math.Max(float64(roll), float64(newroll)))
+			continue
+		}
+		newroll = int(math.Min(float64(roll), float64(newroll)))
+	}
+	return newroll
 }
 
-
+/*
 
 func Rolldwithadv(dice string, advantage int) (int, []int) {
 	adv := int(math.Abs(float64(advantage)))

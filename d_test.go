@@ -10,7 +10,7 @@ func BenchmarkRolldwithadv(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Run the function N times
 		// Adjust the parameters as needed for your benchmarking needs
-		_ = dice.Roll(7)
+		_ = dice.Roll(-3)
 	}
 }
 
@@ -19,7 +19,7 @@ func BenchmarkRolldwithadva(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Run the function N times
 		// Adjust the parameters as needed for your benchmarking needs
-		_ = dice.Roll(1)
+		_ = dice.RollWithAdvantage(1, 0)
 	}
 }
 
