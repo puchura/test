@@ -1,27 +1,25 @@
 package scenes
 
-import (
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
+import rl "github.com/gen2brain/raylib-go/raylib"
 
 type MenuScene struct {
-	game *Game
+	changeScene func(string)
 }
 
-func NewMenuScene(game *Game) *MenuScene {
-	return &MenuScene{game: game}
+func (s *MenuScene) Init(changeScene func(string)) {
+	s.changeScene = changeScene
 }
-
-func (s *MenuScene) Load()   {}
-func (s *MenuScene) Unload() {}
 
 func (s *MenuScene) Update() {
 	if rl.IsKeyPressed(rl.KeyEnter) {
-		s.game.ChangeScene(NewGameplayScene(s.game))
+		s.changeScene("game")
 	}
 }
 
 func (s *MenuScene) Draw() {
-	rl.DrawText("Menu Scene", 320, 200, 20, rl.Black)
-	rl.DrawText("Press ENTER to start the game", 250, 240, 20, rl.DarkGray)
+	rl.DrawText("Menu Scene (Press Enter to start game)", 100, 100, 20, rl.Black)
+}
+
+func (s *MenuScene) Unload() {
+	// Unload menu scene resources
 }

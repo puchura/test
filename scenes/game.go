@@ -1,47 +1,25 @@
 package scenes
 
-import (
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
+import rl "github.com/gen2brain/raylib-go/raylib"
 
-type Game struct {
-	width, height int32
-	title         string
-	currentScene  Scene
+type GameScene struct {
+	changeScene func(string)
 }
 
-func NewGame(width, height int32, title string) *Game {
-	return &Game{
-		width:  width,
-		height: height,
-		title:  title,
+func (s *GameScene) Init(changeScene func(string)) {
+	s.changeScene = changeScene
+}
+
+func (s *GameScene) Update() {
+	if rl.IsKeyPressed(rl.KeyEscape) {
+		s.changeScene("menu")
 	}
 }
 
-func (g *Game) ChangeScene(newScene Scene) {
-	if g.currentScene != nil {
-		g.currentScene.Unload()
-	}
-	g.currentScene = newScene
-	g.currentScene.Load()
+func (s *GameScene) Draw() {
+	rl.DrawText("Game Scene (Press Esc to return to menu)", 100, 100, 20, rl.Black)
 }
 
-func (g *Game) Run() {
-	rl.InitWindow(g.width, g.height, g.title)
-	defer rl.CloseWindow()
-
-	rl.SetTargetFPS(60)
-	rl.SetExitKey(0)
-
-	menuScene := NewMenuScene(g)
-	g.ChangeScene(menuScene)
-
-	for !rl.WindowShouldClose() {
-		g.currentScene.Update()
-
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.RayWhite)
-		g.currentScene.Draw()
-		rl.EndDrawing()
-	}
+func (s *GameScene) Unload() {
+	// Unload game scene resources
 }

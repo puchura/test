@@ -8,24 +8,26 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-const (
-	stitle  string = "Super Duper Mega Game"
-	sheight int32  = 900
-	swidth  int32  = 1600
-)
-
-var (
-	running       bool = true
-	openinventory bool = false
-	bgcolor            = rl.NewColor(60, 158, 250, 255)
-)
-
 func main() {
+	rl.InitWindow(800, 450, "Scene Management Example")
+	defer rl.CloseWindow()
 
-	//test()
-	game := scenes.NewGame(swidth, sheight, stitle)
-	game.Run()
+	rl.SetTargetFPS(60)
+	rl.SetExitKey(0)
 
+	sceneManager := scenes.NewSceneManager()
+	sceneManager.AddScene("menu", &scenes.MenuScene{})
+	sceneManager.AddScene("game", &scenes.GameScene{})
+	sceneManager.SetScene("menu")
+
+	for !rl.WindowShouldClose() {
+		sceneManager.Update()
+
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.RayWhite)
+		sceneManager.Draw()
+		rl.EndDrawing()
+	}
 }
 
 func test() {
