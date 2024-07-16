@@ -18,8 +18,18 @@ func (s *GameScene) Update() {
 
 func (s *GameScene) Draw() {
 	rl.DrawText("Game Scene (Press Esc to return to menu)", 100, 100, 20, rl.Black)
+
+	Input()
+	DrawMap()
+	DrawCharacters()
+	DrawUI()
 }
 
 func (s *GameScene) Unload() {
 	// Unload game scene resources
 }
+
+func Input()          {}
+func DrawMap()        {}
+func DrawCharacters() {}
+func DrawUI()         {}

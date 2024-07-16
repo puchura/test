@@ -40,7 +40,6 @@ const (
 	MovementSpeed Stat = "Movement Speed"
 
 	CurrentMana  Resource = "Current Mana"
-	MaxMana      Resource = "Maximum Mana"
 	ManaRegen    Resource = "Mana Regeneration Bonus"
 	ActionPoints Resource = "Action Points"
 	Rage         Resource = "Rage"
@@ -50,11 +49,20 @@ const (
 	HeavyBleed StatusEffect = "Heavily Bleeding"
 	Poison     StatusEffect = "Poisoned"
 	Sleep      StatusEffect = "Sleeping"
+	Freeze     StatusEffect = "Frozen"
+	Burn       StatusEffect = "Burning"
 	Stun       StatusEffect = "Stunned"
+	Paralysis  StatusEffect = "Paralyzed"
 	Slow       StatusEffect = "Slowed"
 	Maim       StatusEffect = "Maimed"
 	Charm      StatusEffect = "Charmed"
 )
+
+func NewCharacter(name string) Character {
+	return Character{
+		Name: name,
+	}
+}
 
 func (c Character) CLevel() int {
 	EXPtable := [6]int{5, 10, 20, 40, 80, 160}
@@ -69,18 +77,4 @@ func (c Character) CLevel() int {
 		}
 	}
 	return 1
-}
-
-func (c *Character) Attack(t *Character) string {
-
-	return c.Name + " attacked " + t.Name
-}
-
-func (c *Character) ApplyStatus(s ...Status) {
-	c.StatusEffects = append(c.StatusEffects, s...)
-}
-
-func (c *Character) InitChar(name string) Character {
-	c.Name = name
-	return *c
 }
