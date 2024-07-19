@@ -159,17 +159,17 @@ func Input() {
 	}
 
 	// Handle edge panning
-	if mousePos.X < float32(panBorder) {
+	if mousePos.X < float32(panBorder) && !isDragging {
 		camera.Position.X -= float32(panSpeed)
 		camera.Target.X -= float32(panSpeed)
-	} else if mousePos.X > float32(1600-panBorder) {
+	} else if mousePos.X > float32(1600-panBorder) && !isDragging {
 		camera.Position.X += float32(panSpeed)
 		camera.Target.X += float32(panSpeed)
 	}
-	if mousePos.Y < float32(panBorder) {
+	if mousePos.Y < float32(panBorder) && !isDragging {
 		camera.Position.Y += float32(panSpeed)
 		camera.Target.Y += float32(panSpeed)
-	} else if mousePos.Y > float32(900-panBorder) {
+	} else if mousePos.Y > float32(900-panBorder) && !isDragging {
 		camera.Position.Y -= float32(panSpeed)
 		camera.Target.Y -= float32(panSpeed)
 	}
