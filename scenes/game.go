@@ -7,43 +7,65 @@ import (
 )
 
 var (
-	gmap      core.GameMap
-	gridSize  int = 10
-	cellSize  int = 50
-	camera    rl.Camera3D
-	panSpeed          = 5.0
-	panBorder         = 100
-	dragspeed float32 = 0.25
+	gmap         core.GameMap
+	gridSize     int = 10
+	cellWidth    int = 50
+	cellHeight   int = 50
+	camera       rl.Camera3D
+	panSpeed             = 5.0
+	panBorder            = 100
+	dragspeed    float32 = 0.25
+	selectedRect         = -1
+	isDragging   bool    = false
 )
 
 func drawGrid() {
-
 	// Calculate the total grid dimensions
-	gridWidth := float32(gridSize * cellSize)
-	gridHeight := float32(gridSize * cellSize)
+	gridWidth := float32(gridSize * cellWidth)
+	gridHeight := float32(gridSize * cellHeight)
 
 	// Calculate the starting position to center the grid
 	startX := -gridWidth / 2
 	startY := -gridHeight / 2
 
-	// Draw vertical lines
-	for i := 0; i <= gridSize; i++ {
-		x := startX + float32(i*cellSize)
-		rl.DrawLine3D(
-			rl.NewVector3(x, startY, 0),
-			rl.NewVector3(x, startY+gridHeight, 0),
-			rl.LightGray,
-		)
-	}
+	for i := 0; i < gridSize; i++ {
+		for j := 0; j < gridSize; j++ {
+			x := startX + float32(i*cellWidth)
+			y := startY + float32(j*cellHeight)
 
-	// Draw horizontal lines
-	for j := 0; j <= gridSize; j++ {
-		y := startY + float32(j*cellSize)
-		rl.DrawLine3D(
-			rl.NewVector3(startX, y, 0),
-			rl.NewVector3(startX+gridWidth, y, 0),
-			rl.LightGray,
-		)
+			// Draw filled rectangle for selected cell
+			if i*gridSize+j == selectedRect {
+				rl.DrawCube(
+					rl.NewVector3(x+float32(cellWidth)/2, y+float32(cellHeight)/2, 0),
+					float32(cellWidth),
+					float32(cellHeight),
+					0.1,
+					rl.ColorAlpha(rl.Blue, 0.5),
+				)
+			}
+
+			// Draw cell outline
+			rl.DrawLine3D(
+				rl.NewVector3(x, y, 0),
+				rl.NewVector3(x+float32(cellWidth), y, 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x+float32(cellWidth), y, 0),
+				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
+				rl.NewVector3(x, y+float32(cellHeight), 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x, y+float32(cellHeight), 0),
+				rl.NewVector3(x, y, 0),
+				rl.LightGray,
+			)
+		}
 	}
 }
 
@@ -83,8 +105,7 @@ func (s *GameScene) Unload() {
 
 func Input() {
 	mousePos := rl.GetMousePosition()
-	isDragging := false
-	mousdelta := rl.GetMouseDelta()
+	mouseDelta := rl.GetMouseDelta()
 
 	// Handle camera zoom with mouse wheel
 	wheel := rl.GetMouseWheelMove()
@@ -98,22 +119,46 @@ func Input() {
 		}
 	}
 
-	if rl.IsMouseButtonDown(rl.MouseLeftButton) {
-		isDragging = true
-		rl.DisableCursor()
+	// Handle left-click for rectangle selection
+	if rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+		ray := rl.GetMouseRay(mousePos, camera)
+
+		// Calculate the intersection point
+		if ray.Direction.Z != 0 {
+			t := -ray.Position.Z / ray.Direction.Z
+			intersectionPoint := rl.Vector3Add(ray.Position, rl.Vector3Scale(ray.Direction, t))
+
+			// Calculate grid coordinates
+			gridWidth := float32(gridSize * cellWidth)
+			gridHeight := float32(gridSize * cellHeight)
+			startX := -gridWidth / 2
+			startY := -gridHeight / 2
+
+			gridY := int((intersectionPoint.X - startX) / float32(cellWidth))
+			gridX := int((intersectionPoint.Y - startY) / float32(cellHeight))
+
+			if gridX >= 0 && gridX < gridSize && gridY >= 0 && gridY < gridSize {
+				selectedRect = gridY*gridSize + gridX
+			}
+		}
 	}
-	if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
+
+	// Handle right-click dragging for camera movement
+	if rl.IsMouseButtonDown(rl.MouseRightButton) {
+		if !isDragging {
+			isDragging = true
+			rl.DisableCursor()
+		}
+		camera.Position.X -= dragspeed * mouseDelta.X
+		camera.Target.X -= dragspeed * mouseDelta.X
+		camera.Position.Y += dragspeed * mouseDelta.Y
+		camera.Target.Y += dragspeed * mouseDelta.Y
+	} else if rl.IsMouseButtonReleased(rl.MouseRightButton) {
 		isDragging = false
 		rl.EnableCursor()
 	}
 
-	if isDragging {
-		camera.Position.X -= dragspeed * mousdelta.X
-		camera.Target.X -= dragspeed * mousdelta.X
-		camera.Target.Y += dragspeed * mousdelta.Y
-		camera.Position.Y += dragspeed * mousdelta.Y
-	}
-
+	// Handle edge panning
 	if mousePos.X < float32(panBorder) {
 		camera.Position.X -= float32(panSpeed)
 		camera.Target.X -= float32(panSpeed)
@@ -128,7 +173,6 @@ func Input() {
 		camera.Position.Y -= float32(panSpeed)
 		camera.Target.Y -= float32(panSpeed)
 	}
-
 }
 
 func DrawMap() {
