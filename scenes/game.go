@@ -1,73 +1,27 @@
 package scenes
 
 import (
+	"math"
 	"wgame/core"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var (
-	gmap         core.GameMap
-	gridSize     int = 10
-	cellWidth    int = 50
-	cellHeight   int = 50
-	camera       rl.Camera3D
-	panSpeed             = 5.0
-	panBorder            = 100
-	dragspeed    float32 = 0.25
-	selectedRect         = -1
-	isDragging   bool    = false
+	gmap          core.GameMap
+	gridSize      int = 10
+	cellWidth     int = 50
+	cellHeight    int = 50
+	camera        rl.Camera3D
+	panSpeed              = 5.0
+	panBorder             = 100
+	dragspeed     float32 = 0.25
+	selectedRect          = -1
+	isDragging    bool    = false
+	isKeyboardPan bool    = false
+	rotationSpeed float32 = 1.2 // Rotation speed in degrees
+	cameraAngle   float32 = 0   // Current camera angle
 )
-
-func drawGrid() {
-	// Calculate the total grid dimensions
-	gridWidth := float32(gridSize * cellWidth)
-	gridHeight := float32(gridSize * cellHeight)
-
-	// Calculate the starting position to center the grid
-	startX := -gridWidth / 2
-	startY := -gridHeight / 2
-
-	for i := 0; i < gridSize; i++ {
-		for j := 0; j < gridSize; j++ {
-			x := startX + float32(i*cellWidth)
-			y := startY + float32(j*cellHeight)
-
-			// Draw filled rectangle for selected cell
-			if i*gridSize+j == selectedRect {
-				rl.DrawCube(
-					rl.NewVector3(x+float32(cellWidth)/2, y+float32(cellHeight)/2, 0),
-					float32(cellWidth),
-					float32(cellHeight),
-					0.1,
-					rl.ColorAlpha(rl.Blue, 0.5),
-				)
-			}
-
-			// Draw cell outline
-			rl.DrawLine3D(
-				rl.NewVector3(x, y, 0),
-				rl.NewVector3(x+float32(cellWidth), y, 0),
-				rl.LightGray,
-			)
-			rl.DrawLine3D(
-				rl.NewVector3(x+float32(cellWidth), y, 0),
-				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
-				rl.LightGray,
-			)
-			rl.DrawLine3D(
-				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
-				rl.NewVector3(x, y+float32(cellHeight), 0),
-				rl.LightGray,
-			)
-			rl.DrawLine3D(
-				rl.NewVector3(x, y+float32(cellHeight), 0),
-				rl.NewVector3(x, y, 0),
-				rl.LightGray,
-			)
-		}
-	}
-}
 
 type GameScene struct {
 	changeScene func(string)
@@ -145,34 +99,74 @@ func Input() {
 
 	// Handle right-click dragging for camera movement
 	if rl.IsMouseButtonDown(rl.MouseRightButton) {
-		if !isDragging {
-			isDragging = true
-			rl.DisableCursor()
-		}
+		isDragging = true
+		rl.DisableCursor()
+
 		camera.Position.X -= dragspeed * mouseDelta.X
 		camera.Target.X -= dragspeed * mouseDelta.X
 		camera.Position.Y += dragspeed * mouseDelta.Y
 		camera.Target.Y += dragspeed * mouseDelta.Y
-	} else if rl.IsMouseButtonReleased(rl.MouseRightButton) {
+	}
+	if rl.IsMouseButtonReleased(rl.MouseRightButton) {
 		isDragging = false
 		rl.EnableCursor()
 	}
 
-	// Handle edge panning
-	if mousePos.X < float32(panBorder) && !isDragging {
-		camera.Position.X -= float32(panSpeed)
-		camera.Target.X -= float32(panSpeed)
-	} else if mousePos.X > float32(1600-panBorder) && !isDragging {
-		camera.Position.X += float32(panSpeed)
-		camera.Target.X += float32(panSpeed)
+	if !isDragging && !isKeyboardPan {
+		if mousePos.X < float32(panBorder) && !isDragging {
+			camera.Position.X -= float32(panSpeed)
+			camera.Target.X -= float32(panSpeed)
+
+			//TODO: replace 1600 with const representing window width
+		} else if mousePos.X > float32(1600-panBorder) && !isDragging {
+			camera.Position.X += float32(panSpeed)
+			camera.Target.X += float32(panSpeed)
+		}
+		if mousePos.Y < float32(panBorder) && !isDragging {
+			camera.Position.Y += float32(panSpeed)
+			camera.Target.Y += float32(panSpeed)
+
+			//TODO: replace 900 with const representing window height
+		} else if mousePos.Y > float32(900-panBorder) && !isDragging {
+			camera.Position.Y -= float32(panSpeed)
+			camera.Target.Y -= float32(panSpeed)
+		}
 	}
-	if mousePos.Y < float32(panBorder) && !isDragging {
+
+	// Keyboard panning
+	if rl.IsKeyDown(rl.KeyW) {
+		isKeyboardPan = true
 		camera.Position.Y += float32(panSpeed)
 		camera.Target.Y += float32(panSpeed)
-	} else if mousePos.Y > float32(900-panBorder) && !isDragging {
+	}
+	if rl.IsKeyDown(rl.KeyA) {
+		isKeyboardPan = true
+		camera.Position.X -= float32(panSpeed)
+		camera.Target.X -= float32(panSpeed)
+	}
+	if rl.IsKeyDown(rl.KeyS) {
+		isKeyboardPan = true
 		camera.Position.Y -= float32(panSpeed)
 		camera.Target.Y -= float32(panSpeed)
 	}
+	if rl.IsKeyDown(rl.KeyD) {
+		isKeyboardPan = true
+		camera.Position.X += float32(panSpeed)
+		camera.Target.X += float32(panSpeed)
+	}
+	if rl.IsKeyReleased(rl.KeyD) || rl.IsKeyReleased(rl.KeyW) || rl.IsKeyReleased(rl.KeyA) || rl.IsKeyReleased(rl.KeyS) {
+		isKeyboardPan = false
+	}
+
+	if rl.IsKeyDown(rl.KeyQ) {
+		cameraAngle -= rotationSpeed
+		updateCameraPosition()
+	}
+	if rl.IsKeyDown(rl.KeyE) {
+		cameraAngle += rotationSpeed
+		updateCameraPosition()
+	}
+
 }
 
 func DrawMap() {
@@ -182,3 +176,67 @@ func DrawMap() {
 }
 func DrawCharacters() {}
 func DrawUI()         {}
+func updateCameraPosition() {
+	// Convert angle to radians
+	angleRad := cameraAngle * math.Pi / 180.0
+
+	// Calculate new camera position
+	distance := float32(math.Sqrt(float64(camera.Position.X*camera.Position.X + camera.Position.Y*camera.Position.Y)))
+	camera.Position.X = float32(math.Sin(float64(angleRad))) * distance
+	camera.Position.Y = -float32(math.Cos(float64(angleRad))) * distance
+
+	// Maintain the same height (Z position)
+	// Adjust the Up vector to maintain the isometric view
+	camera.Up = rl.NewVector3(-camera.Position.X, -camera.Position.Y, distance)
+	camera.Up = rl.Vector3Normalize(camera.Up)
+}
+
+func drawGrid() {
+	// Calculate the total grid dimensions
+	gridWidth := float32(gridSize * cellWidth)
+	gridHeight := float32(gridSize * cellHeight)
+
+	// Calculate the starting position to center the grid
+	startX := -gridWidth / 2
+	startY := -gridHeight / 2
+
+	for i := 0; i < gridSize; i++ {
+		for j := 0; j < gridSize; j++ {
+			x := startX + float32(i*cellWidth)
+			y := startY + float32(j*cellHeight)
+
+			// Draw filled rectangle for selected cell
+			if i*gridSize+j == selectedRect {
+				rl.DrawCube(
+					rl.NewVector3(x+float32(cellWidth)/2, y+float32(cellHeight)/2, 12.5),
+					float32(cellWidth),
+					float32(cellHeight),
+					25,
+					rl.ColorAlpha(rl.Blue, 0.5),
+				)
+			}
+
+			// Draw cell outline
+			rl.DrawLine3D(
+				rl.NewVector3(x, y, 0),
+				rl.NewVector3(x+float32(cellWidth), y, 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x+float32(cellWidth), y, 0),
+				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
+				rl.NewVector3(x, y+float32(cellHeight), 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x, y+float32(cellHeight), 0),
+				rl.NewVector3(x, y, 0),
+				rl.LightGray,
+			)
+		}
+	}
+}
