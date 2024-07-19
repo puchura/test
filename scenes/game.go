@@ -2,13 +2,13 @@ package scenes
 
 import (
 	"math"
-	"wgame/core"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var (
-	gmap          core.GameMap
+	//gmap          core.GameMap
+	//cr            rl.Texture2D
 	gridSize      int = 10
 	cellWidth     int = 50
 	cellHeight    int = 50
@@ -23,6 +23,11 @@ var (
 	cameraAngle   float32 = 0   // Current camera angle
 )
 
+type Char struct {
+	GridX, GridY int
+	Texture      rl.Texture2D
+}
+
 type GameScene struct {
 	changeScene func(string)
 }
@@ -36,6 +41,7 @@ func (s *GameScene) Init(changeScene func(string)) {
 		Fovy:       45,
 		Projection: rl.CameraPerspective,
 	}
+	//cr = rl.LoadTexture("res/kniget.png")
 }
 
 func (s *GameScene) Update() {
@@ -48,9 +54,12 @@ func (s *GameScene) Draw() {
 	rl.DrawText("Game Scene (Press Esc to return to menu)", 100, 100, 20, rl.Black)
 
 	Input()
+	rl.BeginMode3D(camera)
 	DrawMap()
 	DrawCharacters()
 	DrawUI()
+	rl.EndMode3D()
+
 }
 
 func (s *GameScene) Unload() {
@@ -133,28 +142,46 @@ func Input() {
 		}
 	}
 
-	// Keyboard panning
-	if rl.IsKeyDown(rl.KeyW) {
-		isKeyboardPan = true
-		camera.Position.Y += float32(panSpeed)
-		camera.Target.Y += float32(panSpeed)
+	// Calculate forward and right vectors based on camera angle
+	angleRad := cameraAngle * math.Pi / 180.0
+	forward := rl.Vector3{
+		X: float32(math.Sin(float64(angleRad))),
+		Y: -float32(math.Cos(float64(angleRad))),
+		Z: 0,
 	}
-	if rl.IsKeyDown(rl.KeyA) {
+	right := rl.Vector3{
+		X: float32(math.Cos(float64(angleRad))),
+		Y: float32(math.Sin(float64(angleRad))),
+		Z: 0,
+	}
+
+	// Keyboard panning relative to camera angle
+	moveVector := rl.Vector3{X: 0, Y: 0, Z: 0}
+	if rl.IsKeyDown(rl.KeyW) {
+		moveVector = rl.Vector3Add(moveVector, forward)
 		isKeyboardPan = true
-		camera.Position.X -= float32(panSpeed)
-		camera.Target.X -= float32(panSpeed)
 	}
 	if rl.IsKeyDown(rl.KeyS) {
+		moveVector = rl.Vector3Subtract(moveVector, forward)
 		isKeyboardPan = true
-		camera.Position.Y -= float32(panSpeed)
-		camera.Target.Y -= float32(panSpeed)
+	}
+	if rl.IsKeyDown(rl.KeyA) {
+		moveVector = rl.Vector3Subtract(moveVector, right)
+		isKeyboardPan = true
 	}
 	if rl.IsKeyDown(rl.KeyD) {
+		moveVector = rl.Vector3Add(moveVector, right)
 		isKeyboardPan = true
-		camera.Position.X += float32(panSpeed)
-		camera.Target.X += float32(panSpeed)
 	}
-	if rl.IsKeyReleased(rl.KeyD) || rl.IsKeyReleased(rl.KeyW) || rl.IsKeyReleased(rl.KeyA) || rl.IsKeyReleased(rl.KeyS) {
+
+	// Apply the movement
+	if isKeyboardPan {
+		moveVector = rl.Vector3Scale(rl.Vector3Normalize(moveVector), float32(panSpeed))
+		camera.Position = rl.Vector3Add(camera.Position, moveVector)
+		camera.Target = rl.Vector3Add(camera.Target, moveVector)
+	}
+
+	if rl.IsKeyReleased(rl.KeyW) || rl.IsKeyReleased(rl.KeyA) || rl.IsKeyReleased(rl.KeyS) || rl.IsKeyReleased(rl.KeyD) {
 		isKeyboardPan = false
 	}
 
@@ -170,12 +197,13 @@ func Input() {
 }
 
 func DrawMap() {
-	rl.BeginMode3D(camera)
+
 	drawGrid()
-	rl.EndMode3D()
 }
-func DrawCharacters() {}
-func DrawUI()         {}
+func DrawCharacters() {
+
+}
+func DrawUI() {}
 func updateCameraPosition() {
 	// Convert angle to radians
 	angleRad := cameraAngle * math.Pi / 180.0
