@@ -2,52 +2,116 @@ package main
 
 import (
 	"fmt"
-	"wgame/core"
-	"wgame/scenes"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
+	"sort"
 )
 
 func main() {
-	rl.InitWindow(800, 450, "Scene Management Example")
-	defer rl.CloseWindow()
+	p1 := Character{
+		Name:   "Player 1",
+		Health: 100,
+		Speed:  10,
+		Abilities: []Ability{
+			{Name: "Standard", Attack: 10},
+		},
+	}
 
-	rl.SetTargetFPS(60)
-	rl.SetExitKey(0)
+	p2 := Character{
+		Name:   "Player 2",
+		Health: 100,
+		Speed:  20,
+		Abilities: []Ability{
+			{Name: "Standard", Attack: 20},
+		},
+	}
 
-	sceneManager := scenes.NewSceneManager()
-	sceneManager.AddScene("menu", &scenes.MenuScene{})
-	sceneManager.AddScene("game", &scenes.GameScene{})
-	sceneManager.SetScene("menu")
+	p3 := Character{
+		Name:   "Player 3",
+		Health: 100,
+		Speed:  15,
+		Abilities: []Ability{
+			{Name: "Standard", Attack: 20},
+		},
+	}
 
-	for !rl.WindowShouldClose() {
-		sceneManager.Update()
+	battle := Battle{
+		T1:   []Character{p1},
+		T2:   []Character{p2, p3},
+		Turn: 0,
+	}
 
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.RayWhite)
-		sceneManager.Draw()
-		rl.EndDrawing()
+	battle.Order()
+	fmt.Printf("Team 1 Alive? %v\n", battle.T1.AreAlive())
+	fmt.Printf("Team 2 Alive? %v\n", battle.T2.AreAlive())
+	battle.StartBattle()
+}
+
+type Character struct {
+	Name      string
+	Health    int
+	Speed     int
+	Abilities []Ability
+}
+
+func (c *Character) ListAbilities() {
+	for i, a := range c.Abilities {
+		fmt.Printf("(A%v) %v Damage: %v\n", i+1, a.Name, a.Attack)
+	}
+	fmt.Printf("\n")
+}
+
+func (c *Character) PickAbility() Ability {
+	var i int
+	fmt.Print("Pick an ability: ")
+	fmt.Scan(&i)
+	fmt.Printf("Chose: %v\n", c.Abilities[i-1])
+	return c.Abilities[i-1]
+}
+
+func (c *Character) UseAbility(a Ability, t *Character) {
+	t.Health -= a.Attack
+	fmt.Printf("%v Dealt %v Damage to %v\n", c.Name, a.Attack, t.Name)
+}
+
+type Ability struct {
+	Name   string
+	Attack int
+}
+
+type Characters []Character
+
+type Battle struct {
+	T1   Characters
+	T2   Characters
+	Turn int
+}
+
+func (b *Battle) StartBattle() {
+	println("Starting Battle")
+
+	for b.T1.AreAlive() || b.T1.AreAlive() {
+		fmt.Printf("Turn %v\n", b.Turn)
+		order := b.Order()
+		for _, c := range order {
+			// Attack
+			fmt.Println("Choose your attack:")
+			c.ListAbilities()
+			choice := c.PickAbility()
+		}
 	}
 }
 
-func test() {
-	//dice := core.Dice{Amount: 1, Size: 6}
+func (b *Battle) Order() []Character {
+	order := append(b.T1, b.T2...)
+	sort.Slice(order, func(i, j int) bool {
+		return order[i].Speed > order[j].Speed
+	})
+	return order
+}
 
-	//dice, die := core.Rolldwithadv("2d10", 0)
-	char := core.Character{Exp: 5}
-	char.InitChar("duck")
-	fmt.Println(char.CLevel())
-
-	m := core.GameMap{SizeX: 2, SizeY: 2}
-	m.Init()
-	fmt.Println(m)
-
-	//fmt.Println(char)
-	//fmt.Println(die)
-	//fmt.Println(dice)
-	//fmt.Println(core.RollDice("6d10"))
-	/*for i := 0; i < 10; i++ {
-		fmt.Println(dice.RollWithAdvantage(0, -4))
+func (t *Characters) AreAlive() bool {
+	sum := 0
+	for _, c := range *t {
+		sum += c.Health
 	}
-	*/
+	return sum > 0
 }
