@@ -158,11 +158,11 @@ func Input() {
 	// Keyboard panning relative to camera angle
 	moveVector := rl.Vector3{X: 0, Y: 0, Z: 0}
 	if rl.IsKeyDown(rl.KeyW) {
-		moveVector = rl.Vector3Add(moveVector, forward)
+		moveVector = rl.Vector3Subtract(moveVector, forward)
 		isKeyboardPan = true
 	}
 	if rl.IsKeyDown(rl.KeyS) {
-		moveVector = rl.Vector3Subtract(moveVector, forward)
+		moveVector = rl.Vector3Add(moveVector, forward)
 		isKeyboardPan = true
 	}
 	if rl.IsKeyDown(rl.KeyA) {
@@ -185,15 +185,6 @@ func Input() {
 		isKeyboardPan = false
 	}
 
-	if rl.IsKeyDown(rl.KeyQ) {
-		cameraAngle -= rotationSpeed
-		updateCameraPosition()
-	}
-	if rl.IsKeyDown(rl.KeyE) {
-		cameraAngle += rotationSpeed
-		updateCameraPosition()
-	}
-
 }
 
 func DrawMap() {
@@ -204,20 +195,6 @@ func DrawCharacters() {
 
 }
 func DrawUI() {}
-func updateCameraPosition() {
-	// Convert angle to radians
-	angleRad := cameraAngle * math.Pi / 180.0
-
-	// Calculate new camera position
-	distance := float32(math.Sqrt(float64(camera.Position.X*camera.Position.X + camera.Position.Y*camera.Position.Y)))
-	camera.Position.X = float32(math.Sin(float64(angleRad))) * distance
-	camera.Position.Y = -float32(math.Cos(float64(angleRad))) * distance
-
-	// Maintain the same height (Z position)
-	// Adjust the Up vector to maintain the isometric view
-	camera.Up = rl.NewVector3(-camera.Position.X, -camera.Position.Y, distance)
-	camera.Up = rl.Vector3Normalize(camera.Up)
-}
 
 func drawGrid() {
 	// Calculate the total grid dimensions
