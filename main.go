@@ -61,13 +61,12 @@ func test() {
 	}
 	for i := 0; i < m.SizeY; i++ {
 		for ii := 0; ii < m.SizeX; ii++ {
-			m.Tiles = append(m.Tiles, core.NewTile(core.Terrain{File: "pupu", Name: "Gass"}, 5, true))
+			m.Tiles = append(m.Tiles, core.NewTile("Grass", 5, true))
 		}
 	}
 
-	//fmt.Println(m.Tiles)
 	//fmt.Println(m.SetTileAt(rl.Vector2{95, 5}, core.Tile{}))
-	//fmt.Println(m.GetTileIndex(rl.Vector2{33, 1}))
+	//fmt.Println(m.GetTileIndex(rl.Vector2{1, 1}))
 	//fmt.Println(m.GetTilePos(17))
 	//m := core.GameMap{SizeX: 2, SizeY: 2}
 	//m.Init()
