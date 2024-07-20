@@ -19,6 +19,7 @@ var (
 	selectedRect          = -1
 	isDragging    bool    = false
 	isKeyboardPan bool    = false
+	f             int     = 0
 )
 
 type GameScene struct {
@@ -36,7 +37,8 @@ func (s *GameScene) Init(changeScene func(string)) {
 	}
 	gmap = core.NewMap(12, 5)
 	gmap.GenerateMap()
-	cr = rl.LoadTexture("res/kniget.png")
+	cr = rl.LoadTexture("res/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png")
+	//fmt.Printf("%v %v\n", cr.Height, cr.Width)
 }
 
 func (s *GameScene) Update() {
@@ -168,9 +170,8 @@ func DrawMap() {
 	drawGrid()
 }
 func DrawCharacters() {
-
 	//TODO: Make characters occuipy a cell, at the mid point
-	DrawBillboard(cr, rl.Vector3{0, 25, 25})
+	DrawBillboard(cr, rl.Vector3{-25, 0, 10})
 }
 func DrawUI() {}
 
@@ -228,9 +229,14 @@ func DrawBillboard(t rl.Texture2D, p rl.Vector3) {
 	vz := rl.GetCameraForward(&camera)
 	vx := rl.Vector3Normalize(rl.Vector3CrossProduct(vz, rl.Vector3{0.0, 1.0, 0.0}))
 	vup := rl.Vector3Normalize(rl.Vector3CrossProduct(vx, vz))
-	src := rl.Rectangle{X: 0.0, Y: 0.0, Width: float32(cr.Width), Height: float32(cr.Height)}
+	src := rl.Rectangle{X: float32(192 * (f / 10)), Y: 0.0, Width: 192, Height: 192}
 	size := rl.Vector2{50, 50}
-	origin := rl.Vector2{25, 25}
+	origin := rl.Vector2{0, 0}
 	rotation := 0.0
 	rl.DrawBillboardPro(camera, t, src, p, vup, size, origin, float32(rotation), rl.White)
+	if f > 50 {
+		f = 0
+		return
+	}
+	f++
 }

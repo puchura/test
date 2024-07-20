@@ -23,3 +23,8 @@ go.work.sum
 
 # Meida
 *.png
+
+#res
+*.aseprite
+*.DS_Store
+*.zip
