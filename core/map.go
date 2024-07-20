@@ -7,9 +7,10 @@ import (
 )
 
 type GameMap struct {
-	SizeX int
-	SizeY int
-	Tiles []Tile
+	SizeX      int
+	SizeY      int
+	Tiles      []Tile
+	Characters []Character
 }
 
 type Tile struct {
@@ -23,6 +24,42 @@ func NewMap(sizex, sizey int) GameMap {
 		SizeX: sizex,
 		SizeY: sizey,
 		Tiles: []Tile{
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
+			NewTile("Grass", 0, false),
 			NewTile("Grass", 0, false),
 			NewTile("Grass", 0, false),
 			NewTile("Grass", 0, false),

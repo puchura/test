@@ -35,7 +35,7 @@ func (s *GameScene) Init(changeScene func(string)) {
 		Fovy:       45,
 		Projection: rl.CameraPerspective,
 	}
-	gmap = core.NewMap(12, 5)
+	gmap = core.NewMap(20, 20)
 	gmap.GenerateMap()
 	cr = rl.LoadTexture("res/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png")
 	//fmt.Printf("%v %v\n", cr.Height, cr.Width)
@@ -51,6 +51,7 @@ func (s *GameScene) Draw() {
 	//rl.DrawText("Game Scene (Press Esc to return to menu)", 100, 100, 20, rl.Black)
 
 	Input()
+	rl.DrawFPS(0, 0)
 	rl.BeginMode3D(camera)
 	DrawMap()
 	DrawCharacters()
@@ -170,8 +171,21 @@ func DrawMap() {
 	drawGrid()
 }
 func DrawCharacters() {
-	//TODO: Make characters occuipy a cell, at the mid point
-	DrawBillboard(cr, rl.Vector3{-25, 0, 10})
+	RenderCharacters(gmap)
+	if f > 25 {
+		f = 0
+		return
+	}
+	f++
+
+	//rl.BeginBlendMode(rl.BlendMultiplied)
+	//DrawBillboard(cr, MapToWorldCoords(1, 2))
+	//DrawBillboard(cr, MapToWorldCoords(1, 1))
+	//DrawBillboard(cr, MapToWorldCoords(0, 1))
+	//DrawBillboard(cr, MapToWorldCoords(0, 0))
+	//DrawBillboard(cr, MapToWorldCoords(5, 5))
+
+	//rl.EndBlendMode()
 }
 func DrawUI() {}
 
@@ -229,14 +243,38 @@ func DrawBillboard(t rl.Texture2D, p rl.Vector3) {
 	vz := rl.GetCameraForward(&camera)
 	vx := rl.Vector3Normalize(rl.Vector3CrossProduct(vz, rl.Vector3{0.0, 1.0, 0.0}))
 	vup := rl.Vector3Normalize(rl.Vector3CrossProduct(vx, vz))
-	src := rl.Rectangle{X: float32(192 * (f / 10)), Y: 0.0, Width: 192, Height: 192}
+	src := rl.Rectangle{X: float32(192 * (f / 5)), Y: 0.0, Width: 192, Height: 192}
 	size := rl.Vector2{50, 50}
 	origin := rl.Vector2{0, 0}
 	rotation := 0.0
 	rl.DrawBillboardPro(camera, t, src, p, vup, size, origin, float32(rotation), rl.White)
-	if f > 50 {
-		f = 0
-		return
+
+}
+
+func MapToWorldCoords(x, y int) rl.Vector3 {
+	// Calculate the total grid dimensions
+	gridWidth := float32(gmap.SizeX * cellWidth)
+	gridHeight := float32(gmap.SizeY * cellHeight)
+
+	// Calculate the starting position to center the grid
+	startX := -gridWidth / 2
+	startY := -gridHeight / 2
+
+	// Calculate world coordinates
+	worldX := startX + float32(x*cellWidth) + float32(cellWidth)/2
+	worldY := startY + float32(y*cellHeight) + float32(cellHeight)/2
+
+	// Set a small Z value to place characters slightly above the grid
+	worldZ := float32(10)
+
+	return rl.Vector3{worldX, worldY, worldZ}
+}
+
+func RenderCharacters(m core.GameMap) {
+	for i := len(m.Tiles) - 1; i >= 0; i-- {
+		if m.Tiles[i].Hitpoints == 0 {
+			pos, _ := m.GetTilePos(i)
+			DrawBillboard(cr, MapToWorldCoords(int(pos.X), int(pos.Y)))
+		}
 	}
-	f++
 }
