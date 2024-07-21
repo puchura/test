@@ -9,7 +9,7 @@ import (
 
 var (
 	gmap          core.GameMap
-	cr            rl.Texture2D
+	cr, grass     rl.Texture2D
 	cellWidth     int = 50
 	cellHeight    int = 50
 	camera        rl.Camera3D
@@ -20,6 +20,7 @@ var (
 	isDragging    bool    = false
 	isKeyboardPan bool    = false
 	f             int     = 0
+	elevatedTiles []int
 )
 
 type GameScene struct {
@@ -32,12 +33,14 @@ func (s *GameScene) Init(changeScene func(string)) {
 		Position:   rl.NewVector3(0, -300, 400),
 		Target:     rl.NewVector3(0, 0, 0),
 		Up:         rl.NewVector3(0, 1, 0),
-		Fovy:       45,
+		Fovy:       60,
 		Projection: rl.CameraPerspective,
 	}
-	gmap = core.NewMap(20, 20)
+	gmap = core.NewMap(7, 7)
 	gmap.GenerateMap()
 	cr = rl.LoadTexture("res/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png")
+	grass = rl.LoadTexture("res/Terrain/Ground/Tilemap_Flat.png")
+	elevatedTiles = []int{10, 11}
 	//fmt.Printf("%v %v\n", cr.Height, cr.Width)
 }
 
@@ -62,6 +65,147 @@ func (s *GameScene) Draw() {
 
 func (s *GameScene) Unload() {
 	// Unload scene resources
+}
+
+func DrawMap() {
+	//drawGrid()
+	renderTile()
+	drawElevatedTerrain()
+}
+func DrawCharacters() {
+	RenderCharacters(gmap)
+	if f > 30 {
+		f = 0
+		return
+	}
+	f++
+
+}
+func DrawUI() {}
+
+func renderTile() {
+	for i := 0; i < gmap.SizeX*gmap.SizeY; i++ {
+		if gmap.Tiles[i].Terrain == "Grass" && gmap.Tiles[i].Walkable == false {
+			rect := rl.Rectangle{64, 64, 64, 64}
+			l, _ := gmap.GetTilePos(i)
+			rl.DrawBillboardRec(camera, grass, rect, MapToWorldCoords(int(l.X), int(l.Y), 0), rl.Vector2{50, 50}, rl.White)
+		}
+	}
+
+}
+
+func drawElevatedTerrain() {
+	for _, tileIndex := range elevatedTiles {
+		x, _ := gmap.GetTilePos(tileIndex)
+		worldPos := MapToWorldCoords(int(x.X), int(x.Y), 25) // 25 is half of the elevation height
+
+		// Draw the cube for elevated terrain
+		rl.DrawCube(
+			worldPos,
+			float32(cellWidth),
+			float32(cellHeight),
+			50, // Height of the elevated terrain
+			rl.ColorAlpha(rl.Brown, 0.8),
+		)
+
+		// Draw the textured top of the elevated terrain
+		topPos := rl.Vector3{X: worldPos.X, Y: worldPos.Y, Z: worldPos.Z + 25}
+		rect := rl.Rectangle{64, 64, 64, 64} // Assuming this is the correct part of the texture to use
+		rl.DrawBillboardRec(
+			camera,
+			grass,
+			rect,
+			topPos,
+			rl.Vector2{float32(cellWidth), float32(cellHeight)},
+			rl.White,
+		)
+	}
+}
+
+func drawGrid() {
+	// Calculate the total grid dimensions
+	gridWidth := float32(gmap.SizeX * cellWidth)
+	gridHeight := float32(gmap.SizeY * cellHeight)
+
+	// Calculate the starting position to center the grid
+	startX := -gridWidth / 2
+	startY := -gridHeight / 2
+
+	for i := 0; i < gmap.SizeX; i++ {
+		for j := 0; j < gmap.SizeY; j++ {
+			x := startX + float32(i*cellWidth)
+			y := startY + float32(j*cellHeight)
+
+			// Draw filled rectangle for selected cell
+			if i*gmap.SizeX+j == selectedRect {
+				rl.DrawCube(
+					rl.NewVector3(x+float32(cellWidth)/2, y+float32(cellHeight)/2, 12.5),
+					float32(cellWidth),
+					float32(cellHeight),
+					25,
+					rl.ColorAlpha(rl.Blue, 0.5),
+				)
+			}
+
+			// Draw cell outline
+			rl.DrawLine3D(
+				rl.NewVector3(x, y, 0),
+				rl.NewVector3(x+float32(cellWidth), y, 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x+float32(cellWidth), y, 0),
+				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
+				rl.NewVector3(x, y+float32(cellHeight), 0),
+				rl.LightGray,
+			)
+			rl.DrawLine3D(
+				rl.NewVector3(x, y+float32(cellHeight), 0),
+				rl.NewVector3(x, y, 0),
+				rl.LightGray,
+			)
+		}
+	}
+}
+
+func DrawBillboard(t rl.Texture2D, p rl.Vector3) {
+	vz := rl.GetCameraForward(&camera)
+	vx := rl.Vector3Normalize(rl.Vector3CrossProduct(vz, rl.Vector3{X: 0.0, Y: 1.0, Z: 0.0}))
+	vup := rl.Vector3Normalize(rl.Vector3CrossProduct(vx, vz))
+	src := rl.Rectangle{X: float32(192 * (f / 6)), Y: 0.0, Width: 192, Height: 192}
+	size := rl.Vector2{X: 50, Y: 50}
+	origin := rl.Vector2{X: 0, Y: 0}
+	rotation := 0.0
+	rl.DrawBillboardPro(camera, t, src, p, vup, size, origin, float32(rotation), rl.White)
+
+}
+
+func MapToWorldCoords(x, y, e int) rl.Vector3 {
+	gridWidth := float32(gmap.SizeX * cellWidth)
+	gridHeight := float32(gmap.SizeY * cellHeight)
+
+	startX := -gridWidth / 2
+	startY := -gridHeight / 2
+
+	worldX := startX + float32(x*cellWidth) + float32(cellWidth)/2
+	worldY := startY + float32(y*cellHeight) + float32(cellHeight)/2
+
+	worldZ := float32(e)
+
+	return rl.Vector3{X: worldX, Y: worldY, Z: worldZ}
+}
+
+func RenderCharacters(m core.GameMap) {
+	for i := len(m.Tiles) - 1; i >= 0; i-- {
+		if m.Tiles[i].Hitpoints == 0 {
+			pos, _ := m.GetTilePos(i)
+			DrawBillboard(cr, MapToWorldCoords(int(pos.X), int(pos.Y), 10))
+		}
+	}
 }
 
 func Input() {
@@ -165,116 +309,4 @@ func Input() {
 		isKeyboardPan = false
 	}
 
-}
-
-func DrawMap() {
-	drawGrid()
-}
-func DrawCharacters() {
-	RenderCharacters(gmap)
-	if f > 25 {
-		f = 0
-		return
-	}
-	f++
-
-	//rl.BeginBlendMode(rl.BlendMultiplied)
-	//DrawBillboard(cr, MapToWorldCoords(1, 2))
-	//DrawBillboard(cr, MapToWorldCoords(1, 1))
-	//DrawBillboard(cr, MapToWorldCoords(0, 1))
-	//DrawBillboard(cr, MapToWorldCoords(0, 0))
-	//DrawBillboard(cr, MapToWorldCoords(5, 5))
-
-	//rl.EndBlendMode()
-}
-func DrawUI() {}
-
-func drawGrid() {
-	// Calculate the total grid dimensions
-	gridWidth := float32(gmap.SizeX * cellWidth)
-	gridHeight := float32(gmap.SizeY * cellHeight)
-
-	// Calculate the starting position to center the grid
-	startX := -gridWidth / 2
-	startY := -gridHeight / 2
-
-	for i := 0; i < gmap.SizeX; i++ {
-		for j := 0; j < gmap.SizeY; j++ {
-			x := startX + float32(i*cellWidth)
-			y := startY + float32(j*cellHeight)
-
-			// Draw filled rectangle for selected cell
-			if i*gmap.SizeX+j == selectedRect {
-				rl.DrawCube(
-					rl.NewVector3(x+float32(cellWidth)/2, y+float32(cellHeight)/2, 12.5),
-					float32(cellWidth),
-					float32(cellHeight),
-					25,
-					rl.ColorAlpha(rl.Blue, 0.5),
-				)
-			}
-
-			// Draw cell outline
-			rl.DrawLine3D(
-				rl.NewVector3(x, y, 0),
-				rl.NewVector3(x+float32(cellWidth), y, 0),
-				rl.LightGray,
-			)
-			rl.DrawLine3D(
-				rl.NewVector3(x+float32(cellWidth), y, 0),
-				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
-				rl.LightGray,
-			)
-			rl.DrawLine3D(
-				rl.NewVector3(x+float32(cellWidth), y+float32(cellHeight), 0),
-				rl.NewVector3(x, y+float32(cellHeight), 0),
-				rl.LightGray,
-			)
-			rl.DrawLine3D(
-				rl.NewVector3(x, y+float32(cellHeight), 0),
-				rl.NewVector3(x, y, 0),
-				rl.LightGray,
-			)
-		}
-	}
-}
-
-func DrawBillboard(t rl.Texture2D, p rl.Vector3) {
-	vz := rl.GetCameraForward(&camera)
-	vx := rl.Vector3Normalize(rl.Vector3CrossProduct(vz, rl.Vector3{0.0, 1.0, 0.0}))
-	vup := rl.Vector3Normalize(rl.Vector3CrossProduct(vx, vz))
-	src := rl.Rectangle{X: float32(192 * (f / 5)), Y: 0.0, Width: 192, Height: 192}
-	size := rl.Vector2{50, 50}
-	origin := rl.Vector2{0, 0}
-	rotation := 0.0
-	rl.DrawBillboardPro(camera, t, src, p, vup, size, origin, float32(rotation), rl.White)
-
-}
-
-func MapToWorldCoords(x, y int) rl.Vector3 {
-	// Calculate the total grid dimensions
-	gridWidth := float32(gmap.SizeX * cellWidth)
-	gridHeight := float32(gmap.SizeY * cellHeight)
-
-	// Calculate the starting position to center the grid
-	startX := -gridWidth / 2
-	startY := -gridHeight / 2
-
-	// Calculate world coordinates
-	worldX := startX + float32(x*cellWidth) + float32(cellWidth)/2
-	worldY := startY + float32(y*cellHeight) + float32(cellHeight)/2
-
-	// Set a small Z value to place characters slightly above the grid
-	worldZ := float32(10)
-
-	return rl.Vector3{worldX, worldY, worldZ}
-}
-
-func RenderCharacters(m core.GameMap) {
-	for i := len(m.Tiles) - 1; i >= 0; i-- {
-		if m.Tiles[i].Hitpoints == 0 {
-			pos, _ := m.GetTilePos(i)
-			DrawBillboard(cr, MapToWorldCoords(int(pos.X), int(pos.Y)))
-		}
-	}
 }
