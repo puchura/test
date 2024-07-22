@@ -20,7 +20,6 @@ var (
 	isDragging    bool    = false
 	isKeyboardPan bool    = false
 	f             int     = 0
-	elevatedTiles []int
 )
 
 type GameScene struct {
@@ -40,7 +39,6 @@ func (s *GameScene) Init(changeScene func(string)) {
 	gmap.GenerateMap()
 	cr = rl.LoadTexture("res/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png")
 	grass = rl.LoadTexture("res/Terrain/Ground/Tilemap_Flat.png")
-	elevatedTiles = []int{10, 11}
 	//fmt.Printf("%v %v\n", cr.Height, cr.Width)
 }
 
@@ -98,11 +96,10 @@ func terrainToColor(t core.Tile) rl.Color {
 	default:
 		return rl.DarkGreen
 	}
-	return rl.White
 }
 
 func drawTerrain() {
-	rect := rl.Rectangle{64, 64, 64, 64}
+	rect := rl.Rectangle{X: 64, Y: 64, Width: 64, Height: 64}
 
 	for j := 0; j < gmap.SizeX*gmap.SizeY; j++ {
 		l, _ := gmap.GetTilePos(j)
@@ -116,7 +113,7 @@ func drawTerrain() {
 				terrainToColor(gmap.Tiles[j]),
 			)
 		}
-		rl.DrawBillboardRec(camera, grass, rect, MapToWorldCoords(int(l.X), int(l.Y), 25*gmap.Tiles[j].Height), rl.Vector2{50, 50}, rl.White)
+		rl.DrawBillboardRec(camera, grass, rect, MapToWorldCoords(int(l.X), int(l.Y), 25*gmap.Tiles[j].Height), rl.Vector2{X: 50, Y: 50}, rl.White)
 	}
 
 }
