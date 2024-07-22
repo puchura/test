@@ -14,7 +14,7 @@ var (
 	cellHeight    int = 50
 	camera        rl.Camera3D
 	panSpeed              = 5.0
-	panBorder             = 100
+	panBorder             = 75
 	dragspeed     float32 = 0.25
 	selectedRect          = -1
 	isDragging    bool    = false
@@ -48,12 +48,12 @@ func (s *GameScene) Update() {
 	if rl.IsKeyPressed(rl.KeyEscape) {
 		s.changeScene("menu")
 	}
+	Input()
 }
 
 func (s *GameScene) Draw() {
 	//rl.DrawText("Game Scene (Press Esc to return to menu)", 100, 100, 20, rl.Black)
 
-	Input()
 	rl.DrawFPS(0, 0)
 	rl.BeginMode3D(camera)
 	DrawMap()
@@ -69,8 +69,8 @@ func (s *GameScene) Unload() {
 
 func DrawMap() {
 	//drawGrid()
-	renderTile()
-	drawElevatedTerrain()
+	drawTerrain()
+
 }
 func DrawCharacters() {
 	RenderCharacters(gmap)
@@ -83,43 +83,42 @@ func DrawCharacters() {
 }
 func DrawUI() {}
 
-func renderTile() {
-	for i := 0; i < gmap.SizeX*gmap.SizeY; i++ {
-		if gmap.Tiles[i].Terrain == "Grass" && gmap.Tiles[i].Walkable == false {
-			rect := rl.Rectangle{64, 64, 64, 64}
-			l, _ := gmap.GetTilePos(i)
-			rl.DrawBillboardRec(camera, grass, rect, MapToWorldCoords(int(l.X), int(l.Y), 0), rl.Vector2{50, 50}, rl.White)
-		}
+func terrainToColor(t core.Tile) rl.Color {
+	switch t.Terrain {
+	case "Grass":
+		return rl.DarkGreen
+	case "Dirt":
+		return rl.Brown
+	case "Rock":
+		return rl.LightGray
+	case "Water":
+		return rl.SkyBlue
+	case "lava":
+		return rl.Orange
+	default:
+		return rl.DarkGreen
 	}
-
+	return rl.White
 }
 
-func drawElevatedTerrain() {
-	for _, tileIndex := range elevatedTiles {
-		x, _ := gmap.GetTilePos(tileIndex)
-		worldPos := MapToWorldCoords(int(x.X), int(x.Y), 25) // 25 is half of the elevation height
+func drawTerrain() {
+	rect := rl.Rectangle{64, 64, 64, 64}
 
-		// Draw the cube for elevated terrain
-		rl.DrawCube(
-			worldPos,
-			float32(cellWidth),
-			float32(cellHeight),
-			50, // Height of the elevated terrain
-			rl.ColorAlpha(rl.Brown, 0.8),
-		)
-
-		// Draw the textured top of the elevated terrain
-		topPos := rl.Vector3{X: worldPos.X, Y: worldPos.Y, Z: worldPos.Z + 25}
-		rect := rl.Rectangle{64, 64, 64, 64} // Assuming this is the correct part of the texture to use
-		rl.DrawBillboardRec(
-			camera,
-			grass,
-			rect,
-			topPos,
-			rl.Vector2{float32(cellWidth), float32(cellHeight)},
-			rl.White,
-		)
+	for j := 0; j < gmap.SizeX*gmap.SizeY; j++ {
+		l, _ := gmap.GetTilePos(j)
+		m2w := MapToWorldCoords(int(l.X), int(l.Y), (gmap.Tiles[j].Height)*25/2)
+		if gmap.Tiles[j].Height > 0 {
+			rl.DrawCube(
+				m2w,
+				50,
+				50,
+				float32(gmap.Tiles[j].Height)*25,
+				terrainToColor(gmap.Tiles[j]),
+			)
+		}
+		rl.DrawBillboardRec(camera, grass, rect, MapToWorldCoords(int(l.X), int(l.Y), 25*gmap.Tiles[j].Height), rl.Vector2{50, 50}, rl.White)
 	}
+
 }
 
 func drawGrid() {
@@ -203,10 +202,12 @@ func RenderCharacters(m core.GameMap) {
 	for i := len(m.Tiles) - 1; i >= 0; i-- {
 		if m.Tiles[i].Hitpoints == 0 {
 			pos, _ := m.GetTilePos(i)
-			DrawBillboard(cr, MapToWorldCoords(int(pos.X), int(pos.Y), 10))
+			DrawBillboard(cr, MapToWorldCoords(int(pos.X), int(pos.Y), (m.Tiles[i].Height*25)+10))
 		}
 	}
 }
+
+// DrawCubeTextureRec draws a textured cube using Raylib
 
 func Input() {
 	mousePos := rl.GetMousePosition()
@@ -216,8 +217,8 @@ func Input() {
 	wheel := rl.GetMouseWheelMove()
 	if wheel != 0 {
 		camera.Position.Z -= wheel * 20
-		if camera.Position.Z < 50 {
-			camera.Position.Z = 50
+		if camera.Position.Z < 75 {
+			camera.Position.Z = 75
 		}
 		if camera.Position.Z > 800 {
 			camera.Position.Z = 800

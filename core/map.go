@@ -17,6 +17,7 @@ type Tile struct {
 	Terrain   string
 	Hitpoints int
 	Walkable  bool
+	Height    int
 }
 
 func NewMap(sizex, sizey int) GameMap {
@@ -38,6 +39,10 @@ func NewMap(sizex, sizey int) GameMap {
 			NewTile("Grass", 0, false),
 			NewTile("Grass", 0, false),
 			NewTile("Grass", 0, false),
+			Tile{
+				Terrain: "Grass",
+				Height:  2,
+			},
 		},
 	}
 }

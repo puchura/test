@@ -1,7 +1,6 @@
 package main
 
 import (
-	"wgame/core"
 	"wgame/scenes"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -55,7 +54,7 @@ func test() {
 	//char := core.Character{Exp: 5}
 	//fmt.Println(char.CLevel())
 
-	m := core.GameMap{
+	/*m := core.GameMap{
 		SizeX: 5,
 		SizeY: 6,
 	}
@@ -63,7 +62,7 @@ func test() {
 		for ii := 0; ii < m.SizeX; ii++ {
 			m.Tiles = append(m.Tiles, core.NewTile("Grass", 5, true))
 		}
-	}
+	/*}
 
 	//fmt.Println(m.SetTileAt(rl.Vector2{95, 5}, core.Tile{}))
 	//fmt.Println(m.GetTileIndex(rl.Vector2{1, 1}))
