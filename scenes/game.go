@@ -260,24 +260,26 @@ func Input() {
 	}
 
 	//Edge panning
-	if !isDragging && !isKeyboardPan {
-		if mousePos.X < float32(panBorder) {
-			camera.Position.X -= float32(panSpeed)
-			camera.Target.X -= float32(panSpeed)
+	if rl.IsCursorOnScreen() {
+		if !isDragging && !isKeyboardPan {
+			if mousePos.X < float32(panBorder) {
+				camera.Position.X -= float32(panSpeed)
+				camera.Target.X -= float32(panSpeed)
 
-			//TODO: replace 1600 with const representing window width
-		} else if mousePos.X > float32(1600-panBorder) {
-			camera.Position.X += float32(panSpeed)
-			camera.Target.X += float32(panSpeed)
-		}
-		if mousePos.Y < float32(panBorder) {
-			camera.Position.Y += float32(panSpeed)
-			camera.Target.Y += float32(panSpeed)
+				//TODO: replace 1600 with const representing window width
+			} else if mousePos.X > float32(1600-panBorder) {
+				camera.Position.X += float32(panSpeed)
+				camera.Target.X += float32(panSpeed)
+			}
+			if mousePos.Y < float32(panBorder) {
+				camera.Position.Y += float32(panSpeed)
+				camera.Target.Y += float32(panSpeed)
 
-			//TODO: replace 900 with const representing window height
-		} else if mousePos.Y > float32(900-panBorder) {
-			camera.Position.Y -= float32(panSpeed)
-			camera.Target.Y -= float32(panSpeed)
+				//TODO: replace 900 with const representing window height
+			} else if mousePos.Y > float32(900-panBorder) {
+				camera.Position.Y -= float32(panSpeed)
+				camera.Target.Y -= float32(panSpeed)
+			}
 		}
 	}
 

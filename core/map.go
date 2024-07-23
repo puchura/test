@@ -41,6 +41,10 @@ func NewMap(sizex, sizey int) GameMap {
 			NewTile("Grass", 0, false),
 			Tile{
 				Terrain: "Grass",
+				Height:  1,
+			},
+			Tile{
+				Terrain: "Rock",
 				Height:  2,
 			},
 		},
