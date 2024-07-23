@@ -20,42 +20,20 @@ type Tile struct {
 	Height    int
 }
 
-func NewMap(sizex, sizey int) GameMap {
+func NewMap(sizex, sizey int, tiles []Tile) GameMap {
 	return GameMap{
 		SizeX: sizex,
 		SizeY: sizey,
-		Tiles: []Tile{
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			NewTile("Grass", 0, false),
-			Tile{
-				Terrain: "Grass",
-				Height:  1,
-			},
-			Tile{
-				Terrain: "Rock",
-				Height:  2,
-			},
-		},
+		Tiles: tiles,
 	}
 }
 
-func NewTile(t string, hp int, w bool) Tile {
+func NewTile(t string, hp int, w bool, h int) Tile {
 	return Tile{
 		Terrain:   t,
 		Hitpoints: hp,
 		Walkable:  w,
+		Height:    h,
 	}
 }
 
@@ -97,7 +75,7 @@ func (g GameMap) ValidateVector(v rl.Vector2) bool {
 func (g *GameMap) GenerateMap() {
 	for i := 0; i < g.SizeY; i++ {
 		for ii := 0; ii < g.SizeX; ii++ {
-			g.Tiles = append(g.Tiles, NewTile("Grass", 5, true))
+			g.Tiles = append(g.Tiles, NewTile("Grass", 5, true, 0))
 		}
 	}
 }

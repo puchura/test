@@ -3,6 +3,7 @@ package scenes
 import (
 	"fmt"
 	"wgame/core"
+	"wgame/maps"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -35,7 +36,9 @@ func (s *GameScene) Init(changeScene func(string)) {
 		Fovy:       60,
 		Projection: rl.CameraPerspective,
 	}
-	gmap = core.NewMap(7, 7)
+	x, y, t := maps.Test()
+	fmt.Printf("%v, %v, %v", x, y, t)
+	gmap = core.NewMap(x, y, t)
 	gmap.GenerateMap()
 	cr = rl.LoadTexture("res/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png")
 	grass = rl.LoadTexture("res/Terrain/Ground/Tilemap_Flat.png")
