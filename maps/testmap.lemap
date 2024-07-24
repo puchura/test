@@ -1,7 +1,7 @@
 [terrain]
 R G G G G
 G G G G G
-G G G G G
+G G R G G
 
 [elevation]
 1 0 0 0 0
@@ -11,9 +11,9 @@ G G G G G
 [walkable]
 0 1 0 0 0
 0 0 0 0 0
-0 0 0 0 0
+0 0 1 0 0
 
 [health]
 0 0 1 0 0
 0 0 0 0 0
-0 0 0 0 0
+0 0 1 0 0

@@ -37,7 +37,7 @@ func (s *GameScene) Init(changeScene func(string)) {
 		Projection: rl.CameraPerspective,
 	}
 	x, y, t := maps.Test()
-	fmt.Printf("%v, %v, %v", x, y, t)
+	//fmt.Printf("%v, %v, %v", x, y, t)
 	gmap = core.NewMap(x, y, t)
 	gmap.GenerateMap()
 	cr = rl.LoadTexture("res/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png")
@@ -204,6 +204,7 @@ func RenderCharacters(m core.GameMap) {
 			pos, _ := m.GetTilePos(i)
 			DrawBillboard(cr, MapToWorldCoords(int(pos.X), int(pos.Y), (m.Tiles[i].Height*25)+10))
 		}
+		//fmt.Println(m.Tiles[i])
 	}
 }
 
